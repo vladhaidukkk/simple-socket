@@ -1,8 +1,10 @@
 import socket
 
+import views
+
 RESOURCES = {
-    "/": "<h1>Hello world!</h1>",
-    "/blog": "<h1>Blog</h1>",
+    "/": views.index,
+    "/blog": views.blog,
 }
 
 
@@ -29,7 +31,8 @@ def generate_body(uri: str, code: int) -> str:
         case 405:
             return "<h1>405</h1><p>Method Not Allowed</p>"
         case _:
-            return RESOURCES[uri]
+            view = RESOURCES[uri]
+            return view()
 
 
 def generate_response(request: str) -> bytes:
