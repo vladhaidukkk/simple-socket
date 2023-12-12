@@ -1,6 +1,9 @@
 import socket
 
-RESOURCES = []
+RESOURCES = {
+    "/": "<h1>Hello world!</h1>",
+    "/blog": "<h1>Blog</h1>",
+}
 
 
 def parse_request(request: str) -> tuple[str, str]:
@@ -8,7 +11,7 @@ def parse_request(request: str) -> tuple[str, str]:
     return method, uri
 
 
-def generate_status_line(method: str, uri: str) -> str:
+def generate_status_line(method: str, uri: str) -> tuple[str, int]:
     if method != "GET":
         code, phrase = 405, "Method Not Allowed"
     elif uri not in RESOURCES:
@@ -16,13 +19,24 @@ def generate_status_line(method: str, uri: str) -> str:
     else:
         code, phrase = 200, "OK"
 
-    return f"HTTP/1.1 {code} {phrase}"
+    return f"HTTP/1.1 {code} {phrase}", code
+
+
+def generate_body(uri: str, code: int) -> str:
+    match code:
+        case 404:
+            return "<h1>404</h1><p>Not Found</p>"
+        case 405:
+            return "<h1>405</h1><p>Method Not Allowed</p>"
+        case _:
+            return RESOURCES[uri]
 
 
 def generate_response(request: str) -> bytes:
     method, uri = parse_request(request)
-    status_line = generate_status_line(method, uri)
-    return f"{status_line}\n\n".encode()
+    status_line, code = generate_status_line(method, uri)
+    body = generate_body(uri, code)
+    return f"{status_line}\n\n{body}".encode()
 
 
 def main():
